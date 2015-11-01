@@ -1,9 +1,10 @@
 Rails.application.routes.draw do
+  mount RuCaptcha::Engine => "/rucaptcha"
+
   use_doorkeeper do
     controllers applications: 'oauth/applications', authorized_applications: 'oauth/authorized_applications'
   end
 
-  resources :apps
   resources :sites
   resources :pages, path: 'wiki' do
     collection do
@@ -35,6 +36,7 @@ Rails.application.routes.draw do
   resources :notifications, only: [:index, :destroy] do
     collection do
       post :clear
+      get :unread
     end
   end
 
@@ -48,6 +50,7 @@ Rails.application.routes.draw do
   get 'topics/node:id' => 'topics#node', as: 'node_topics'
   get 'topics/node:id/feed' => 'topics#node_feed', as: 'feed_node_topics', defaults: { format: 'xml' }
   get 'topics/last' => 'topics#recent', as: 'recent_topics'
+
   resources :topics do
     member do
       post :reply
@@ -127,9 +130,11 @@ Rails.application.routes.draw do
   # 比如 http://ruby-china.org/huacnlee
   get 'users/city/:id' => 'users#city', as: 'location_users'
   get 'users' => 'users#index', as: 'users'
+
   resources :users, path: '' do
     member do
       get :topics
+      get :replies
       get :favorites
       get :notes
       get :blocked

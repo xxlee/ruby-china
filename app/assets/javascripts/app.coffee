@@ -1,6 +1,6 @@
 #= require jquery
+#= require jquery.turbolinks
 #= require jquery_ujs
-#= require jquery.turbolinks.min
 #= require bootstrap.min
 #= require bootstrap-select.min
 #= require underscore
@@ -18,10 +18,11 @@
 #= require notifier
 #= require message-bus
 #= require form_storage
-#= require turbolinks
 #= require topics
 #= require pages
 #= require notes
+#= require turbolinks
+#= require google_analytics
 #= require_self
 
 AppView = Backbone.View.extend
@@ -35,9 +36,11 @@ AppView = Backbone.View.extend
     "click a.button-block-user": "blockUser"
     "click a.button-follow-user": "followUser"
     "click a.button-block-node": "blockNode"
+    "click a.rucaptcha-image-box": "reLoadRucaptchaImage"
 
   initialize: ->
     FormStorage.restore()
+    Turbolinks.ProgressBar.enable()
     @initForDesktopView()
     @initComponents()
     @initNotificationSubscribe()
@@ -60,7 +63,7 @@ AppView = Backbone.View.extend
 
     # 绑定评论框 Ctrl+Enter 提交事件
     $(".cell_comments_new textarea").unbind "keydown"
-    $(".cell_comments_new textarea").bind "keydown","ctrl+return",(el) ->
+    $(".cell_comments_new textarea").bind "keydown", "ctrl+return", (el) ->
       if $(el.target).val().trim().length > 0
         $(el.target).parent().parent().submit()
       return false
@@ -102,19 +105,19 @@ AppView = Backbone.View.extend
           type : likeable_type
       if likes_count > 0
         likes_count -= 1
-      $el.data("state","").data('count', likes_count).attr("title", "喜欢").removeClass("followed")
+      $el.data("state","").data('count', likes_count).attr("title", "").removeClass("followed")
       if likes_count == 0
-        $('span',$el).text("喜欢")
+        $('span',$el).text("")
       else
-        $('span',$el).text("#{likes_count} 人喜欢")
-      $("i.fa",$el).attr("class","fa fa-heart-o")
+        $('span',$el).text("#{likes_count} 个赞")
+      $("i.fa",$el).attr("class","fa fa-thumbs-up")
     false
 
   likeableAsLiked : (el) ->
     likes_count = el.data("count")
-    el.data("state","followed").attr("title", "取消喜欢").addClass("followed")
-    $('span',el).text("#{likes_count} 人喜欢")
-    $("i.fa",el).attr("class","fa fa-heart")
+    el.data("state","followed").attr("title", "取消赞").addClass("followed")
+    $('span',el).text("#{likes_count} 个赞")
+    $("i.fa",el).attr("class","fa fa-thumbs-up")
 
 
   initNotificationSubscribe : () ->
@@ -148,27 +151,27 @@ AppView = Backbone.View.extend
     $(".header .form-search input").val("")
     $(".header .form-search").removeClass("active")
     return false
-    
+
   followUser: (e) ->
     btn = $(e.currentTarget)
     userId = btn.data("id")
     span = btn.find("span")
     followerCounter = $(".follow-info .followers[data-login=#{userId}] .counter")
     if btn.hasClass("active")
-      $.ajax 
+      $.ajax
         url: "/#{userId}/unfollow"
-        type: "POST" 
+        type: "POST"
         success: (res) ->
           if res.code == 0
             btn.removeClass('active')
             span.text("关注")
             followerCounter.text(res.data.followers_count)
     else
-      $.ajax 
+      $.ajax
         url: "/#{userId}/follow"
         type: 'POST'
-        success: (res) ->       
-          if res.code == 0 
+        success: (res) ->
+          if res.code == 0
             btn.addClass('active').attr("title", "")
             span.text("取消关注")
             followerCounter.text(res.data.followers_count)
@@ -202,8 +205,15 @@ AppView = Backbone.View.extend
       span.text("取消屏蔽")
     return false
 
-
+  reLoadRucaptchaImage: (e) ->
+    btn = $(e.currentTarget)
+    img = btn.find('img:first')
+    currentSrc = img.attr('src')
+    img.attr('src', currentSrc.split('?')[0] + '?' + (new Date()).getTime())
+    return false
+    
 window.App =
+  locale: 'zh-CN'
   notifier : null
   current_user_id: null
   access_token : ''

@@ -71,7 +71,7 @@ describe TopicsHelper, type: :helper do
     end
 
     it 'should link mentioned user' do
-      user = Factory(:user)
+      user = create(:user)
       expect(helper.markdown("hello @#{user.name} @b @a @#{user.name}")).to eq(
         "<p>hello <a href=\"/#{user.name}\" class=\"at_user\" title=\"@#{user.name}\"><i>@</i>#{user.name}</a> <a href=\"/b\" class=\"at_user\" title=\"@b\"><i>@</i>b</a> <a href=\"/a\" class=\"at_user\" title=\"@a\"><i>@</i>a</a> <a href=\"/#{user.name}\" class=\"at_user\" title=\"@#{user.name}\"><i>@</i>#{user.name}</a></p>"
       )
@@ -149,8 +149,8 @@ describe TopicsHelper, type: :helper do
   end
 
   describe 'topic_favorite_tag' do
-    let(:user) { Factory :user }
-    let(:topic) { Factory :topic }
+    let(:user) { create :user }
+    let(:topic) { create :topic }
 
     it 'should run with nil param' do
       allow(helper).to receive(:current_user).and_return(nil)
@@ -176,9 +176,31 @@ describe TopicsHelper, type: :helper do
     end
   end
 
+  describe 'topic_title_tag' do
+    let(:topic) { create :topic, title: 'test title'}
+    let(:user) { create :user }
+
+    it 'should return topic_was_deleted without a topic' do
+      expect(helper.topic_title_tag(nil)).to eq(t('topics.topic_was_deleted'))
+    end
+
+    it 'should return title with a topic' do
+      expect(helper.topic_title_tag(topic)).to eq("<a title=\"#{topic.title}\" href=\"/topics/#{topic.id}\">#{topic.title}</a>")
+    end
+
+    it 'should return page and floor with a reply' do
+      replies = []
+      52.times do |e|
+        replies << create(:reply, topic: topic, user: user)
+      end
+      expect(helper.topic_title_tag(topic, reply: replies[21])).to eq("<a title=\"#{topic.title}\" href=\"/topics/#{topic.id}?page=1#reply22\">#{topic.title}</a>")
+      expect(helper.topic_title_tag(topic, reply: replies[51])).to eq("<a title=\"#{topic.title}\" href=\"/topics/#{topic.id}?page=2#reply52\">#{topic.title}</a>")
+    end
+  end
+
   describe 'topic_follow_tag' do
-    let(:topic) { Factory :topic }
-    let(:user) { Factory :user }
+    let(:topic) { create :topic }
+    let(:user) { create :user }
 
     it 'should return empty when current_user is nil' do
       allow(helper).to receive(:current_user).and_return(nil)

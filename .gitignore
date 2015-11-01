@@ -16,6 +16,7 @@ config/redis.yml
 config/mailer_daemon.yml
 config/secrets.yml
 public/uploads/**/*
+public/system/**/*
 public/topics
 public/topics/**/*
 .redcar
@@ -30,3 +31,5 @@ solr/pids/
 tags
 chromedriver.log
 .idea/
+spec/examples.txt
+.vagrant

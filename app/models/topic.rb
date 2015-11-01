@@ -113,12 +113,16 @@ class Topic
   end
 
   after_create do
-    Topic.delay.notify_topic_created(id)
+    NotifyTopicJob.perform_later(id)
+  end
+
+  def followed?(uid)
+    follower_ids.include?(uid)
   end
 
   def push_follower(uid)
     return false if uid == user_id
-    return false if follower_ids.include?(uid)
+    return false if followed?(uid)
     push(follower_ids: uid)
     true
   end
@@ -170,7 +174,7 @@ class Topic
   # 所有的回复编号
   def reply_ids
     Rails.cache.fetch([self, 'reply_ids']) do
-      replies.only(:_id).map(&:_id)
+      replies.only(:_id).map(&:_id).sort
     end
   end
 
@@ -180,6 +184,11 @@ class Topic
 
   def ban!
     update_attributes(lock_node: true, node_id: Node.no_point_id, admin_editing: true)
+  end
+
+  def page_floor_of_reply(reply)
+    reply_index = reply_ids.index(reply.id)
+    [reply_index / Reply.per_page + 1, reply_index + 1]
   end
 
   def self.notify_topic_created(topic_id)

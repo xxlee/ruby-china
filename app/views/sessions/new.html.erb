@@ -1,4 +1,5 @@
 <% content_for :sitemap do %><span class="current">加入社区</span><% end %>
+
 <div class="row">
   <div class="col-md-5 col-md-offset-2">
     <div class="panel panel-default">
@@ -10,6 +11,14 @@
         </div>
         <div class="form-group">
           <%= f.text_field :password, type: :password, class: "form-control", placeholder: "密码" %>
+        </div>
+        <div class="form-group">
+          <%= rucaptcha_input_tag(class: 'form-control', placeholder: t('common.captcha')) %>
+        </div>
+        <div class="form-group">
+          <a class="rucaptcha-image-box" href="#">
+            <%= rucaptcha_image_tag %>
+          </a>
         </div>
         <% if devise_mapping.rememberable? -%>
         <div class="from-group checkbox">
@@ -30,7 +39,7 @@
   </div>
   <div class="col-md-3">
     <div class="panel panel-default">
-      <div class="panel-heading">用其他平台的帐号登录</div>
+      <div class="panel-heading"><%= t("common.auth_with_other_services") %></div>
       <ul class="list-group">
         <li class="list-group-item"><%= link_to raw("<i class='fa fa-github'></i> GitHub"), user_omniauth_authorize_path(:github), class: "btn btn-default" %> </li>
       </ul>

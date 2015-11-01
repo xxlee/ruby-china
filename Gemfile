@@ -12,15 +12,18 @@ gem 'coffee-rails'
 gem 'uglifier'
 gem 'jquery-rails', '~> 4.0.4'
 gem 'jbuilder'
+gem 'turbolinks', github: 'rails/turbolinks'
+gem 'jquery-turbolinks'
 
 gem 'actionpack-action_caching', '1.1.1'
 gem 'rails-i18n'
+gem 'http_accept_language'
 gem 'rails_autolink', '>= 1.1.0'
 gem 'md_emoji', '1.0.2'
 gem 'exception_notification'
 
 gem 'doorkeeper'
-gem 'doorkeeper-i18n', github: 'doorkeeper-gem/doorkeeper-i18n'
+gem 'doorkeeper-i18n'
 
 gem 'rails-perftest'
 gem 'ruby-prof'
@@ -28,7 +31,10 @@ gem 'ruby-prof'
 # 上传组件
 gem 'carrierwave', '~> 0.10.0'
 gem 'carrierwave-upyun', '0.1.8'
-gem 'mini_magick', '3.7.0', require: false
+gem 'mini_magick'
+
+gem 'rucaptcha', '0.2.0'
+gem 'letter_avatar'
 
 # Mongoid 辅助插件
 gem 'mongoid', '4.0.2'
@@ -59,7 +65,7 @@ gem 'redis-namespace', '~> 1.5.1'
 gem 'redis-objects', '1.1.0'
 
 # Markdown 格式 & 文本处理
-gem 'redcarpet', '~> 3.2.3'
+gem 'redcarpet', '~> 3.3.3'
 gem 'rouge', '~> 1.8.0'
 gem 'auto-space', '0.0.4'
 gem 'nokogiri', '1.6.5'
@@ -68,9 +74,9 @@ gem 'nokogiri', '1.6.5'
 gem 'settingslogic', '~> 2.0.9'
 
 # 队列
-gem 'sidekiq', '3.4.2'
+gem 'sidekiq'
 # Sidekiq Web
-gem 'sinatra', '>= 1.3.0', require: nil
+gem 'sinatra', require: nil
 
 gem 'message_bus'
 
@@ -117,22 +123,24 @@ group :development, :test do
   gem 'capistrano-sidekiq'
 
   gem 'rubocop'
-  gem 'rspec-rails', '~> 3.1'
-  gem 'factory_girl_rails', '1.4.0'
+  gem 'rspec-rails', '~> 3.3'
+  gem 'factory_girl_rails', '~> 4.5.0'
   gem 'database_cleaner'
   gem 'capybara', '~> 2.3.0'
   gem 'api_taster', '0.6.0'
 
   gem 'jasmine-rails', '~> 0.10.2'
-  gem 'derailed_benchmarks', github: 'schneems/derailed_benchmarks'
+  gem 'derailed'
 
   gem 'mongoid_colored_logger'
   gem 'colorize'
   gem 'letter_opener'
 
-  gem 'puma'
+  gem 'puma', '~> 2.14.0'
 
   # Better Errors
   gem 'better_errors'
   gem 'binding_of_caller'
+
+  gem 'tunemygc'
 end

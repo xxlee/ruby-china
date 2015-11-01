@@ -26,13 +26,12 @@ module RubyChina
     # The default locale is :en and all translations from config/locales/*.rb,yml are auto loaded.
     config.i18n.load_path += Dir[Rails.root.join('my', 'locales', '*.{rb,yml}').to_s]
     config.i18n.default_locale = 'zh-CN'
+    config.i18n.available_locales = ['zh-CN', 'en', 'zh-TW']
     config.i18n.fallbacks = true
 
     config.autoload_paths << Rails.root.join('app/api')
+    config.autoload_paths << Rails.root.join('lib')
     config.eager_load_paths += %W( #{config.root}/lib/exception_notifier )
-
-    # Configure the default encoding used in templates for Ruby 1.9.
-    config.encoding = 'utf-8'
 
     config.mongoid.include_root_in_json = false
 
@@ -61,16 +60,18 @@ module RubyChina
       end
     end
 
-    config.cache_store = [:dalli_store, '127.0.0.1', { namespace: 'rb-cn', compress: true }]
+    config.cache_store = [:dalli_store, '127.0.0.1', { namespace: 'rb', compress: true }]
 
     config.middleware.insert 0, Rack::UTF8Sanitizer
+
+    config.active_job.queue_adapter = :sidekiq
   end
 end
+
+require 'markdown'
 
 $memory_store = ActiveSupport::Cache::MemoryStore.new
 
 I18n.config.enforce_available_locales = false
 I18n.locale = 'zh-CN'
-
-require 'markdown'
 # GC::Profiler.enable

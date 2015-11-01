@@ -87,7 +87,9 @@ class User
 
   attr_accessor :password_confirmation
 
-  ACCESSABLE_ATTRS = [:name, :email_public, :location, :company, :bio, :website, :github, :twitter, :tagline, :avatar, :by, :current_password, :password, :password_confirmation]
+  ACCESSABLE_ATTRS = [:name, :email_public, :location, :company, :bio, :website, :github, :twitter,
+                      :tagline, :avatar, :by, :current_password, :password, :password_confirmation,
+                      :_rucaptcha]
 
   STATE = {
     # 软删除
@@ -210,7 +212,7 @@ class User
   # 注册邮件提醒
   after_create :send_welcome_mail
   def send_welcome_mail
-    UserMailer.delay.welcome(id)
+    UserMailer.welcome(id).deliver_later
   end
 
   # 保存用户所在城市
@@ -299,7 +301,7 @@ class User
   # 收藏东西
   def like(likeable)
     return false if likeable.blank?
-    return false if likeable.liked_by_user?(self)
+    return false if liked?(likeable)
     likeable.push(liked_user_ids: id)
     likeable.inc(likes_count: 1)
     likeable.touch
@@ -308,17 +310,23 @@ class User
   # 取消收藏
   def unlike(likeable)
     return false if likeable.blank?
-    return false unless likeable.liked_by_user?(self)
+    return false unless liked?(likeable)
+    return false if likeable.user_id == self.id
     likeable.pull(liked_user_ids: id)
     likeable.inc(likes_count: -1)
     likeable.touch
+  end
+
+  # 是否喜欢过
+  def liked?(likeable)
+    likeable.liked_by_user?(self) || likeable.user_id == self.id
   end
 
   # 收藏话题
   def favorite_topic(topic_id)
     return false if topic_id.blank?
     topic_id = topic_id.to_i
-    return false if favorite_topic_ids.include?(topic_id)
+    return false if favorited_topic?(topic_id)
     push(favorite_topic_ids: topic_id)
     true
   end
@@ -329,6 +337,11 @@ class User
     topic_id = topic_id.to_i
     pull(favorite_topic_ids: topic_id)
     true
+  end
+
+  # 是否收藏过话题
+  def favorited_topic?(topic_id)
+    favorite_topic_ids.include?(topic_id)
   end
 
   def favorite_topics_count
@@ -354,14 +367,14 @@ class User
     cache_key = github_repositories_cache_key
     items = Rails.cache.read(cache_key)
     if items.nil?
-      User.delay.fetch_github_repositories(id)
+      GithubRepoFetcherJob.perform_later(id)
       items = []
     end
     items
   end
 
   def github_repositories_cache_key
-    "github_repositories:#{github}+10+v3"
+    "github_repositories:#{github}+10+v4"
   end
 
   def self.fetch_github_repositories(user_id)
@@ -372,13 +385,13 @@ class User
 
     url = "https://api.github.com/users/#{github_login}/repos?type=owner&sort=pushed&client_id=#{Setting.github_token}&client_secret=#{Setting.github_secret}"
     begin
-      json = Timeout.timeout(5) do
+      json = Timeout.timeout(10) do
         open(url).read
       end
     rescue => e
       Rails.logger.error("GitHub Repositiory fetch Error: #{e}")
       items = []
-      Rails.cache.write(user.github_repositories_cache_key, items, expires_in: 15.days)
+      Rails.cache.write(user.github_repositories_cache_key, items, expires_in: 1.minutes)
       return false
     end
 
@@ -462,11 +475,34 @@ class User
     following.delete(user)
   end
 
-  def avatar_url
-    if self.avatar?
-      avatar.url(:large)
+  def favorites_count
+    favorite_topic_ids.count
+  end
+
+  # 用户的账号类型
+  def level
+    if admin?
+      return 'admin'
+    elsif verified?
+      return 'vip'
+    elsif hr?
+      return 'hr'
+    elsif blocked?
+      return 'blocked'
+    elsif newbie?
+      return 'newbie'
     else
-      "#{Setting.gravatar_proxy}/avatar/#{email_md5}.png?s=120"
+      return 'normal'
     end
+  end
+
+  def level_name
+    return I18n.t("common.#{level}_user")
+  end
+
+  def letter_avatar_url(size)
+    path = LetterAvatar.generate(self.login, size).sub('public/','/')
+
+    "//#{Setting.domain}#{path}"
   end
 end

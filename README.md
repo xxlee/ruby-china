@@ -2,8 +2,7 @@
 
 This is the source code of [Ruby China](http://ruby-china.org) website.
 
-[![Build
-Status](https://secure.travis-ci.org/ruby-china/ruby-china.png?branch=master&.png)](http://travis-ci.org/ruby-china/ruby-china)
+[![Build Status](https://travis-ci.org/ruby-china/ruby-china.svg?branch=master)](https://travis-ci.org/ruby-china/ruby-china)
 
 ## Requirements
 
@@ -15,8 +14,29 @@ Status](https://secure.travis-ci.org/ruby-china/ruby-china.png?branch=master&.pn
 
 ## Install in development
 
+### Vagrant
 
-**Mac OS X, use Homebrew**
+Install VirtualBox:
+
+https://www.virtualbox.org/
+
+Install Vagrant:
+
+https://www.vagrantup.com/
+
+Then:
+
+```bash
+$ vagrant up
+$ vagrant ssh
+$ cd /vagrant
+/vagrant $ ./bin/setup
+/vagrant $ rails s -b 0.0.0.0
+```
+
+Open http://localhost:3000 in host.
+
+### Mac OS X, use Homebrew
 
 ```bash
 $ ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
@@ -26,7 +46,7 @@ $ brew install mongodb
 $ brew install imagemagick
 ```
 
-**Ubuntu***
+### Ubuntu
 
 ```bash
 $ sudo apt-get install memcached mongodb redis-server imagemagick

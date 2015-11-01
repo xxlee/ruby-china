@@ -9,6 +9,8 @@ class Reply
   include Mongoid::Mentionable
   include Mongoid::Likeable
 
+  UPVOTES = %w(+1 :+1: :thumbsup: :plus1: 👍 👍🏻 👍🏼 👍🏽 👍🏾 👍🏿)
+
   field :body
   field :body_html
 
@@ -24,6 +26,8 @@ class Reply
 
   delegate :title, to: :topic, prefix: true, allow_nil: true
   delegate :login, to: :user, prefix: true, allow_nil: true
+
+  scope :fields_for_list, -> { only(:topic_id, :_id, :body_html, :updated_at, :created_at) }
 
   validates :body, presence: true
   validates :body, uniqueness: { scope: [:topic_id, :user_id], message: '不能重复提交。' }
@@ -49,8 +53,15 @@ class Reply
   end
 
   after_create do
-    Reply.delay.notify_reply_created(id)
+    NotifyReplyJob.perform_later(id)
   end
+
+  after_create :check_vote_chars_for_like_topic
+  def check_vote_chars_for_like_topic
+    return unless self.upvote?
+    user.like(topic)
+  end
+
 
   def self.per_page
     50
@@ -88,6 +99,10 @@ class Reply
   # 是否热门
   def popular?
     likes_count >= 5
+  end
+
+  def upvote?
+    body.strip.start_with?(*UPVOTES)
   end
 
   def destroy

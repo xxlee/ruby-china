@@ -2,12 +2,12 @@ require 'rails_helper'
 require 'digest/md5'
 
 describe User, type: :model do
-  let(:topic) { Factory :topic }
-  let(:user)  { Factory :user }
-  let(:user2) { Factory :user }
-  let(:reply) { Factory :reply }
-  let(:user_for_delete1) { Factory :user }
-  let(:user_for_delete2) { Factory :user }
+  let(:topic) { create :topic }
+  let(:user)  { create :user }
+  let(:user2) { create :user }
+  let(:reply) { create :reply }
+  let(:user_for_delete1) { create :user }
+  let(:user_for_delete2) { create :user }
 
   describe '#read_topic?' do
     before do
@@ -40,7 +40,7 @@ describe User, type: :model do
   end
 
   describe '#filter_readed_topics' do
-    let(:topics) { FactoryGirl.create_list(:topic, 3) }
+    let(:topics) { create_list(:topic, 3) }
 
     it 'should work' do
       user.read_topic(topics[1])
@@ -69,7 +69,7 @@ describe User, type: :model do
       old_name = user.location
       new_name = 'HongKong'
       old_location = Location.find_by_name(old_name)
-      hk_location = Factory(:location, name: new_name, users_count: 20)
+      hk_location = create(:location, name: new_name, users_count: 20)
       user.location = new_name
       user.save
       user.reload
@@ -81,7 +81,7 @@ describe User, type: :model do
   end
 
   describe 'admin?' do
-    let(:admin) { Factory :admin }
+    let(:admin) { create :admin }
     it 'should know you are an admin' do
       expect(admin).to be_admin
     end
@@ -92,7 +92,7 @@ describe User, type: :model do
   end
 
   describe 'wiki_editor?' do
-    let(:admin) { Factory :admin }
+    let(:admin) { create :admin }
     it 'should know admin is wiki editor' do
       expect(admin).to be_wiki_editor
     end
@@ -132,38 +132,38 @@ describe User, type: :model do
     subject { user }
 
     context 'when is a new user' do
-      let(:user) { Factory :user }
+      let(:user) { create :user }
       it { is_expected.to have_role(:member) }
     end
 
     context 'when is a blocked user' do
-      let(:user) { Factory :blocked_user }
+      let(:user) { create :blocked_user }
       it { is_expected.not_to have_role(:member) }
     end
 
     context 'when is a deleted user' do
-      let(:user) { Factory :blocked_user }
+      let(:user) { create :blocked_user }
       it { is_expected.not_to have_role(:member) }
     end
 
     context 'when is admin' do
-      let(:user) { Factory :admin }
+      let(:user) { create :admin }
       it { is_expected.to have_role(:admin) }
     end
 
     context 'when is wiki editor' do
-      let(:user) { Factory :wiki_editor }
+      let(:user) { create :wiki_editor }
       it { is_expected.to have_role(:wiki_editor) }
     end
 
     context 'when ask for some random role' do
-      let(:user) { Factory :user }
+      let(:user) { create :user }
       it { is_expected.not_to have_role(:savior_of_the_broken) }
     end
   end
 
   describe 'github url' do
-    subject { Factory(:user, github: 'monkey') }
+    subject { create(:user, github: 'monkey') }
     let(:expected) { 'https://github.com/monkey' }
 
     context 'user name provided correct' do
@@ -201,6 +201,7 @@ describe User, type: :model do
       expect(user.favorite_topic(nil)).to eq(false)
       expect(user.favorite_topic(topic.id.to_s)).to eq(false)
       expect(user.favorite_topic_ids.include?(topic.id)).to eq(true)
+      expect(user.favorited_topic?(topic.id)).to eq(true)
     end
 
     it 'should unfavorite a topic' do
@@ -208,13 +209,15 @@ describe User, type: :model do
       expect(user.favorite_topic_ids.include?(topic.id)).to eq(false)
       expect(user.unfavorite_topic(nil)).to eq(false)
       expect(user.unfavorite_topic(topic.id.to_s)).to eq(true)
+      expect(user.favorited_topic?(topic.id)).to eq(false)
     end
   end
 
   describe 'Like' do
-    let(:topic) { Factory :topic }
-    let(:user)  { Factory :user }
-    let(:user2) { Factory :user }
+    let(:topic) { create :topic }
+    let(:reply) { create :reply }
+    let(:user)  { create :user }
+    let(:user2) { create :user }
 
     describe 'like topic' do
       it 'can like/unlike topic' do
@@ -227,11 +230,28 @@ describe User, type: :model do
         topic.reload
         expect(topic.likes_count).to eq(2)
         expect(topic.liked_user_ids).to include(user2.id)
+        expect(user.liked?(topic)).to eq(true)
 
         user2.unlike(topic)
         topic.reload
         expect(topic.likes_count).to eq(1)
         expect(topic.liked_user_ids).not_to include(user2.id)
+
+        # can't like itself
+        topic.user.like(topic)
+        topic.reload
+        expect(topic.likes_count).to eq(1)
+        expect(topic.liked_user_ids).not_to include(topic.user_id)
+
+        # can't unlike itself
+        topic.user.unlike(topic)
+        topic.reload
+        expect(topic.likes_count).to eq(1)
+        expect(topic.liked_user_ids).not_to include(topic.user_id)
+
+        expect {
+          user.like(reply)
+        }.to change(reply, :likes_count).by(1)
       end
 
       it 'can tell whether or not liked by a user' do
@@ -259,7 +279,7 @@ describe User, type: :model do
   end
 
   describe '#find_login' do
-    let(:user) { Factory :user }
+    let(:user) { create :user }
 
     it 'should work' do
       u = User.find_login(user.login)
@@ -285,7 +305,7 @@ describe User, type: :model do
   end
 
   describe '.block_node' do
-    let(:user) { Factory :user }
+    let(:user) { create :user }
 
     it 'should work' do
       user.block_node(1)
@@ -300,7 +320,7 @@ describe User, type: :model do
   end
 
   describe '.block_user' do
-    let(:user) { Factory :user }
+    let(:user) { create :user }
 
     it 'should work' do
       user.block_user(1)
@@ -315,9 +335,9 @@ describe User, type: :model do
   end
 
   describe '.follow_user' do
-    let(:u1) { Factory :user }
-    let(:u2) { Factory :user }
-    let(:u3) { Factory :user }
+    let(:u1) { create :user }
+    let(:u2) { create :user }
+    let(:u3) { create :user }
 
     it 'should work' do
       u1.follow_user(u2)
@@ -338,6 +358,74 @@ describe User, type: :model do
       u1.unfollow_user(u3)
       expect(u1.following_ids).to eq [u2.id]
       expect(u3.follower_ids).to eq []
+    end
+  end
+
+  describe '.favorites_count' do
+    let(:u1) { create :user, favorite_topic_ids: [1, 2] }
+
+    it 'should work' do
+      expect(u1.favorites_count).to eq(2)
+    end
+
+  end
+
+  describe '.level / .level_name' do
+    let(:u1) { create(:user) }
+
+    context 'admin' do
+      it 'should work' do
+        allow(u1).to receive(:admin?).and_return(true)
+        expect(u1.level).to eq('admin')
+        expect(u1.level_name).to eq('管理员')
+      end
+    end
+
+    context 'vip' do
+      it 'should work' do
+        allow(u1).to receive(:verified?).and_return(true)
+        expect(u1.level).to eq('vip')
+        expect(u1.level_name).to eq('高级会员')
+      end
+    end
+
+    context 'hr' do
+      it 'should work' do
+        allow(u1).to receive(:hr?).and_return(true)
+        expect(u1.level).to eq('hr')
+        expect(u1.level_name).to eq('企业 HR')
+      end
+    end
+
+    context 'blocked' do
+      it 'should work' do
+        allow(u1).to receive(:blocked?).and_return(true)
+        expect(u1.level).to eq('blocked')
+        expect(u1.level_name).to eq('禁言用户')
+      end
+    end
+
+    context 'newbie' do
+      it 'should work' do
+        allow(u1).to receive(:newbie?).and_return(true)
+        expect(u1.level).to eq('newbie')
+        expect(u1.level_name).to eq('新手')
+      end
+    end
+
+    context 'normal' do
+      it 'should work' do
+        allow(u1).to receive(:newbie?).and_return(false)
+        expect(u1.level).to eq('normal')
+        expect(u1.level_name).to eq('会员')
+      end
+    end
+  end
+
+  describe '.letter_avatar_url' do
+    let(:user) { create(:user) }
+    it 'should work' do
+      expect(user.letter_avatar_url(240)).to include("//#{Setting.domain}/system/letter_avatars/")
     end
   end
 end

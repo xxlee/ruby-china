@@ -5,7 +5,7 @@ describe 'API V3', 'nodes', type: :request do
   let(:json) { JSON.parse(response.body) }
   describe 'GET /api/nodes.json' do
     before do
-      %w(fun ruby nodes).each_with_index { |n, i| Factory(:node, name: n, id: i + 1) }
+      %w(fun ruby nodes).each_with_index { |n, i| create(:node, name: n, id: i + 1) }
     end
 
     it 'should return the list of nodes' do
@@ -24,6 +24,17 @@ describe 'API V3', 'nodes', type: :request do
         { 'id' => 2, 'name' => 'ruby' },
         { 'id' => 3, 'name' => 'nodes' }
       ])
+    end
+  end
+
+  describe 'GET /api/nodes/:id.json' do
+    let(:node) { create(:node, topics_count: 100) }
+
+    it 'should work' do
+      get "/api/v3/nodes/#{node.id}.json"
+      expect(response.status).to eq(200)
+      expect(json["node"]).to include(*%w(id name topics_count summary section_id sort section_name updated_at))
+      expect(json["node"]["topics_count"]).to eq(100)
     end
   end
 end
