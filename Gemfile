@@ -1,4 +1,3 @@
-# coding: utf-8
 if ENV['USE_OFFICIAL_GEM_SOURCE']
   source 'https://rubygems.org'
 else
@@ -12,8 +11,9 @@ gem 'coffee-rails'
 gem 'uglifier'
 gem 'jquery-rails', '~> 4.0.4'
 gem 'jbuilder'
-gem 'turbolinks', github: 'rails/turbolinks'
+gem 'turbolinks', git: 'https://github.com/rails/turbolinks.git'
 gem 'jquery-turbolinks'
+gem 'dropzonejs-rails'
 
 gem 'actionpack-action_caching', '1.1.1'
 gem 'rails-i18n'
@@ -33,14 +33,13 @@ gem 'carrierwave', '~> 0.10.0'
 gem 'carrierwave-upyun', '0.1.8'
 gem 'mini_magick'
 
-gem 'rucaptcha', '0.2.0'
+gem 'rucaptcha'
 gem 'letter_avatar'
 
 # Mongoid 辅助插件
-gem 'mongoid', '4.0.2'
-gem 'mongoid-rails'
-gem 'mongoid_auto_increment_id', '0.6.4'
-gem 'mongoid_rails_migrations', '1.0.0'
+gem 'mongoid', '5.0.0'
+gem 'mongoid_auto_increment_id', '0.8.1'
+gem 'mongoid_rails_migrations'
 
 # 用户系统
 gem 'devise', '~> 3.5.1'
@@ -74,7 +73,7 @@ gem 'nokogiri', '1.6.5'
 gem 'settingslogic', '~> 2.0.9'
 
 # 队列
-gem 'sidekiq'
+gem 'sidekiq', '4.0.0.pre2'
 # Sidekiq Web
 gem 'sinatra', require: nil
 
@@ -99,7 +98,7 @@ gem 'postmark-rails', '0.4.1'
 gem 'kgio'
 gem 'dalli', '2.7.4'
 
-gem 'unicorn', '4.9.0'
+gem 'unicorn', '5.0.0'
 
 gem 'parallel'
 
@@ -116,6 +115,12 @@ gem 'rack-mini-profiler', require: false
 
 gem 'oneapm_rpm'
 
+gem 'rest-client', '~> 1.8.0'
+
+group :development do
+  gem 'derailed'
+end
+
 group :development, :test do
   gem 'capistrano', '2.9.0', require: false
   gem 'capistrano-unicorn'
@@ -130,9 +135,7 @@ group :development, :test do
   gem 'api_taster', '0.6.0'
 
   gem 'jasmine-rails', '~> 0.10.2'
-  gem 'derailed'
 
-  gem 'mongoid_colored_logger'
   gem 'colorize'
   gem 'letter_opener'
 
@@ -143,4 +146,6 @@ group :development, :test do
   gem 'binding_of_caller'
 
   gem 'tunemygc'
+
+  gem 'bundler-audit', require: false
 end
